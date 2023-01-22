@@ -15,13 +15,20 @@ char strBuff[MAX_BUFFER_SIZE];
 
 RTC_DS1307 rtc;
 
+bool isSet = false;
 
+int _minute = 0;
+
+int _hour = 0;
 
 TM1637Display display(DISP_DIO, DISP_CLK);
 
 byte dispdata[] = {0xff, 0xff, 0xff, 0xff};
 byte temp;
 
+void setMode();
+
+void unSetMode();
 
 void setup() 
 {
@@ -38,10 +45,8 @@ void setup()
     while (1);
   }
 
-
   rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   
-
   display.setBrightness(0x01);
 }
 
@@ -49,20 +54,38 @@ void loop()
 {
   DateTime now = rtc.now();
   
-  digitalWrite(LED2, HIGH);
-
   snprintf(strBuff, MAX_BUFFER_SIZE, "%02d/%02d/%02d (dzien: %d) %02d:%02d:%02d", 
   now.year(), now.month(), now.day(), now.dayOfTheWeek(), now.hour(), now.minute(), now.second());
-
-  dispdata[3] = display.encodeDigit(now.second()%10);
-  //temp = now.second()/10;
-  dispdata[2] = display.encodeDigit((byte)now.second()/10);
-  //temp = temp/10;
-  dispdata[1] = display.encodeDigit(now.minute()%10);
-  //temp = temp/10;
-  dispdata[0] = display.encodeDigit((byte)now.minute()/10);
-  //temp = temp/10;
-
-  display.setSegments(dispdata);
+  //_minute = now.minute();
+  //_hour = now.hour();
   
+  if(isSet)
+  {
+    setMode();
+  }
+  else
+  {
+    unSetMode();
+  }
+}
+
+void unSetMode()
+{
+  if(!isSet)
+  {
+    display.showNumberDecEx(_minute, 0, true, 2, 2);
+    display.showNumberDecEx(_hour, 0x40, true, 2, 0);
+    delay(500);
+    display.clear();
+    delay(500);
+  }
+}
+
+void setMode()
+{
+  if(!isSet)
+  {
+    display.showNumberDecEx(_minute, 0, true, 2, 2);
+    display.showNumberDecEx(_hour, 0x40, true, 2, 0);
+  }
 }
